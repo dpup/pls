@@ -86,7 +86,7 @@ func (m Model) View() string {
 	c := m.candidates[m.index]
 
 	// Command line.
-	s := commandStyle.Render(c.Cmd) + "\n"
+	s := commandBoxStyle.Render(commandStyle.Render(c.Cmd)) + "\n"
 
 	// Reason line.
 	s += "\n"

@@ -3,13 +3,24 @@ package tui
 import "github.com/charmbracelet/lipgloss"
 
 var (
-	commandStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("15")).PaddingLeft(2)
-	reasonStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("245")).PaddingLeft(2)
-	riskSafe     = lipgloss.NewStyle().Foreground(lipgloss.Color("42")).Bold(true)
-	riskModerate = lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Bold(true)
+	commandStyle    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("15"))
+	commandBoxStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("63")).
+			MarginLeft(2).
+			PaddingLeft(1).
+			PaddingRight(1)
+	reasonStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("245")).PaddingLeft(2)
+	riskSafe      = lipgloss.NewStyle().Foreground(lipgloss.Color("42")).Bold(true)
+	riskModerate  = lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Bold(true)
 	riskDangerous = lipgloss.NewStyle().Foreground(lipgloss.Color("196")).Bold(true)
-	helpStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).PaddingLeft(2).PaddingTop(1)
-	keyStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("252")).Bold(true)
+	helpStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).PaddingLeft(2).PaddingTop(1)
+	keyStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("252")).Bold(true)
+
+	// Verbose context styles.
+	sectionHeaderStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("63")).PaddingLeft(2)
+	labelStyle         = lipgloss.NewStyle().Foreground(lipgloss.Color("245")).PaddingLeft(2)
+	valueStyle         = lipgloss.NewStyle().Foreground(lipgloss.Color("252"))
 )
 
 // riskStyle returns the appropriate lipgloss style for the given risk level.

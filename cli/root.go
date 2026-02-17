@@ -17,7 +17,10 @@ import (
 	"github.com/dpup/pls/internal/tui"
 )
 
-var printJSON bool
+var (
+	printJSON bool
+	verbose   bool
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "pls [intent]",
@@ -29,6 +32,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.Flags().BoolVar(&printJSON, "json", false, "Print candidates as JSON instead of interactive TUI")
+	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Print context sent to LLM before showing results")
 }
 
 func Execute() {
@@ -77,6 +81,11 @@ func run(cmd *cobra.Command, args []string) error {
 	if len(resp.Candidates) == 0 {
 		fmt.Println("No command candidates generated.")
 		return nil
+	}
+
+	// Print verbose context if requested.
+	if verbose {
+		fmt.Fprint(os.Stderr, tui.PrintContext(*snap, projectHistory, globalHistory))
 	}
 
 	// Non-interactive mode
