@@ -3,6 +3,7 @@ interactive: true
 
 env:
   ANTHROPIC_MODEL: opus
+  ANTHROPIC_API_KEY: placeholder
   CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: 1
 
 container:
