@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -16,12 +17,18 @@ import (
 	"github.com/dpup/pls/internal/tui"
 )
 
+var printJSON bool
+
 var rootCmd = &cobra.Command{
 	Use:   "pls [intent]",
 	Short: "Project-aware natural language shell command router",
 	Long:  "Translates natural language into the right shell command for your current project.",
 	Args:  cobra.MinimumNArgs(1),
 	RunE:  run,
+}
+
+func init() {
+	rootCmd.Flags().BoolVar(&printJSON, "json", false, "Print candidates as JSON instead of interactive TUI")
 }
 
 func Execute() {
@@ -70,6 +77,13 @@ func run(cmd *cobra.Command, args []string) error {
 	if len(resp.Candidates) == 0 {
 		fmt.Println("No command candidates generated.")
 		return nil
+	}
+
+	// Non-interactive mode
+	if printJSON {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		return enc.Encode(resp)
 	}
 
 	// Run TUI
