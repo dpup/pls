@@ -1,7 +1,7 @@
 package main
 
-import "github.com/dpup/pls/cmd"
+import "github.com/dpup/pls/cli"
 
 func main() {
-	cmd.Execute()
+	cli.Execute()
 }
