@@ -7,6 +7,7 @@ import (
 )
 
 func TestLoad_FromFile(t *testing.T) {
+	t.Setenv("ANTHROPIC_API_KEY", "")
 	dir := t.TempDir()
 	cfgPath := filepath.Join(dir, "config.toml")
 	os.WriteFile(cfgPath, []byte(`
