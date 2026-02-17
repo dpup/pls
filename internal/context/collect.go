@@ -10,6 +10,9 @@ import (
 func DefaultParsers() []Parser {
 	return []Parser{
 		&GitParser{},
+		&NodeParser{},
+		&MakeParser{},
+		&JustParser{},
 	}
 }
 
