@@ -13,6 +13,10 @@ func DefaultParsers() []Parser {
 		&NodeParser{},
 		&MakeParser{},
 		&JustParser{},
+		&GoParser{},
+		&DockerParser{},
+		&PythonParser{},
+		&ScriptsParser{},
 	}
 }
 
