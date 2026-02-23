@@ -26,9 +26,13 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:           "pls [intent]",
-	Short:         "Project-aware natural language shell command router",
-	Long:          "Translates natural language into the right shell command for your current project.",
+	Use:   "pls [intent]",
+	Short: "Project-aware natural language shell command router",
+	Long:  "Translates natural language into the right shell command for your current project.",
+	Example: `  pls "run tests"
+  pls "deploy to staging"
+  pls --json "run the linter"
+  pls --explain "run tests for history"`,
 	Args:          cobra.MinimumNArgs(1),
 	RunE:          run,
 	SilenceErrors: true,
@@ -66,7 +70,10 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Collect context
-	cwd, _ := os.Getwd()
+	cwd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("getting working directory: %w", err)
+	}
 	snap, err := plsctx.Collect(cwd, plsctx.DefaultParsers())
 	if err != nil {
 		return fmt.Errorf("collecting context: %w", err)
@@ -145,13 +152,15 @@ func run(cmd *cobra.Command, args []string) error {
 }
 
 func historyDBPath() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		home = os.TempDir()
+	}
 	if runtime.GOOS == "darwin" {
-		home, _ := os.UserHomeDir()
 		return filepath.Join(home, "Library", "Application Support", "pls", "history.db")
 	}
 	dataDir := os.Getenv("XDG_DATA_HOME")
 	if dataDir == "" {
-		home, _ := os.UserHomeDir()
 		dataDir = filepath.Join(home, ".local", "share")
 	}
 	return filepath.Join(dataDir, "pls", "history.db")

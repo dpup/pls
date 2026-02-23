@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
@@ -29,6 +30,8 @@ func NewClient(cfg *config.Config) *Client {
 		config: cfg,
 	}
 }
+
+const apiTimeout = 30 * time.Second
 
 // Generate calls the fast model with tools, allowing the LLM to explore the
 // project before producing candidates. If the top candidate's confidence is
@@ -55,18 +58,6 @@ func (c *Client) Generate(snap context.Snapshot, intent string, projectHistory [
 	return resp, nil
 }
 
-// Escalate calls the strong model (Sonnet) directly. This is used when the user
-// exhausts the fast model's candidates via repeated 'n' presses.
-func (c *Client) Escalate(snap context.Snapshot, intent string, projectHistory []history.Entry, globalHistory []history.Entry) (*Response, error) {
-	prompt := BuildPrompt(intent, &snap, projectHistory, globalHistory)
-
-	resp, err := c.call(c.config.LLM.Models.Strong, prompt)
-	if err != nil {
-		return nil, fmt.Errorf("strong model call: %w", err)
-	}
-	return resp, nil
-}
-
 // callWithTools runs a multi-turn loop: the LLM can call tools to explore the
 // project, then produce a final JSON response. Capped at maxToolTurns round
 // trips to bound latency.
@@ -85,15 +76,17 @@ func (c *Client) callWithTools(model, prompt string, handler *toolHandler) (*Res
 			turnTools = tools
 		}
 
-		msg, err := c.api.Messages.New(gocontext.Background(), anthropic.MessageNewParams{
+		ctx, cancel := gocontext.WithTimeout(gocontext.Background(), apiTimeout)
+		msg, err := c.api.Messages.New(ctx, anthropic.MessageNewParams{
 			Model:     anthropic.Model(model),
-			MaxTokens: 1024,
+			MaxTokens: 2048,
 			System: []anthropic.TextBlockParam{
 				{Text: SystemPrompt()},
 			},
 			Messages: messages,
 			Tools:    turnTools,
 		})
+		cancel()
 		if err != nil {
 			return nil, fmt.Errorf("API call to %s (turn %d): %w", model, turn, err)
 		}
@@ -175,9 +168,12 @@ func (c *Client) callWithTools(model, prompt string, handler *toolHandler) (*Res
 
 // call makes a single-shot API call (no tools). Used for escalation.
 func (c *Client) call(model, prompt string) (*Response, error) {
-	msg, err := c.api.Messages.New(gocontext.Background(), anthropic.MessageNewParams{
+	ctx, cancel := gocontext.WithTimeout(gocontext.Background(), apiTimeout)
+	defer cancel()
+
+	msg, err := c.api.Messages.New(ctx, anthropic.MessageNewParams{
 		Model:     anthropic.Model(model),
-		MaxTokens: 1024,
+		MaxTokens: 2048,
 		System: []anthropic.TextBlockParam{
 			{Text: SystemPrompt()},
 		},

@@ -139,6 +139,10 @@ type Parser interface {
 
 Then register it in `DefaultParsers()` in `collect.go`.
 
+## Platform support
+
+macOS and Linux. Windows is not currently supported.
+
 ## License
 
 [MIT](LICENSE)

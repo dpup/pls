@@ -139,6 +139,7 @@ func (h *toolHandler) readFile(input json.RawMessage) (string, bool) {
 }
 
 // isWithin checks that target is within the root directory (path traversal guard).
+// Resolves symlinks to prevent escaping via symlinked paths.
 func isWithin(target, root string) bool {
 	absTarget, err := filepath.Abs(target)
 	if err != nil {
@@ -148,5 +149,14 @@ func isWithin(target, root string) bool {
 	if err != nil {
 		return false
 	}
+
+	// Resolve symlinks if the target exists on disk.
+	if resolved, err := filepath.EvalSymlinks(absTarget); err == nil {
+		absTarget = resolved
+	}
+	if resolved, err := filepath.EvalSymlinks(absRoot); err == nil {
+		absRoot = resolved
+	}
+
 	return absTarget == absRoot || strings.HasPrefix(absTarget, absRoot+string(filepath.Separator))
 }

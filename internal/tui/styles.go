@@ -14,6 +14,7 @@ var (
 	riskSafe      = lipgloss.NewStyle().Foreground(lipgloss.Color("42")).Bold(true)
 	riskModerate  = lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Bold(true)
 	riskDangerous = lipgloss.NewStyle().Foreground(lipgloss.Color("196")).Bold(true)
+	riskUnknown   = lipgloss.NewStyle().Foreground(lipgloss.Color("245")).Bold(true)
 	helpStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).PaddingLeft(2).PaddingTop(1)
 	keyStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("252")).Bold(true)
 
@@ -39,6 +40,6 @@ func riskLabel(risk string) string {
 	case "dangerous":
 		return riskDangerous.Render("\u25a0 dangerous")
 	default:
-		return riskSafe.Render("\u25a0 safe")
+		return riskUnknown.Render("\u25a0 unknown")
 	}
 }

@@ -56,13 +56,15 @@ func LoadFrom(path string) (*Config, error) {
 }
 
 func defaultPath() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		home = os.TempDir()
+	}
 	if runtime.GOOS == "darwin" {
-		home, _ := os.UserHomeDir()
 		return filepath.Join(home, "Library", "Application Support", "pls", "config.toml")
 	}
 	cfgDir := os.Getenv("XDG_CONFIG_HOME")
 	if cfgDir == "" {
-		home, _ := os.UserHomeDir()
 		cfgDir = filepath.Join(home, ".config")
 	}
 	return filepath.Join(cfgDir, "pls", "config.toml")
