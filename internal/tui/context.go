@@ -71,6 +71,19 @@ func PrintContext(snap plsctx.Snapshot, projectHistory, globalHistory []history.
 	return b.String()
 }
 
+// FormatPrompt renders the full LLM prompt for --explain output.
+func FormatPrompt(prompt string) string {
+	var b strings.Builder
+	header := sectionRule.Render("── Prompt " + strings.Repeat("─", 29))
+	b.WriteString(labelStyle.Render(header))
+	b.WriteString("\n")
+	for _, line := range strings.Split(prompt, "\n") {
+		b.WriteString(labelStyle.Render(line))
+		b.WriteString("\n")
+	}
+	return b.String()
+}
+
 // PrintToolLog renders the tool-use rounds from the LLM generation loop.
 func PrintToolLog(rounds []llm.ToolRound) string {
 	if len(rounds) == 0 {

@@ -20,6 +20,7 @@ import (
 var (
 	printJSON bool
 	verbose   bool
+	explain   bool
 )
 
 var rootCmd = &cobra.Command{
@@ -33,9 +34,12 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.Flags().BoolVar(&printJSON, "json", false, "Print candidates as JSON instead of interactive TUI")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Print context sent to LLM before showing results")
+	rootCmd.Flags().BoolVar(&explain, "explain", false, "Print the prompt that would be sent to the LLM, then exit (no API call)")
 }
 
-func Execute() {
+// Execute is the entry point for the CLI, called from main.
+func Execute(version string) {
+	rootCmd.Version = version
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
@@ -48,9 +52,6 @@ func run(cmd *cobra.Command, args []string) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("loading config: %w", err)
-	}
-	if cfg.LLM.APIKey == "" {
-		return fmt.Errorf("no API key configured. Set ANTHROPIC_API_KEY or add api_key to ~/.config/pls/config.toml")
 	}
 
 	// Collect context
@@ -71,6 +72,19 @@ func run(cmd *cobra.Command, args []string) error {
 	repoID, _ := store.EnsureRepo(snap.RepoRoot)
 	projectHistory, _ := store.ProjectHistory(repoID, snap.CwdRel, 20)
 	globalHistory, _ := store.RecentGlobal(10)
+
+	// --explain: print the full prompt and exit without calling the API.
+	if explain {
+		fmt.Fprint(os.Stderr, tui.PrintContext(*snap, projectHistory, globalHistory))
+		prompt := llm.BuildPrompt(intent, snap, projectHistory, globalHistory)
+		fmt.Fprintln(os.Stderr, tui.FormatPrompt(prompt))
+		return nil
+	}
+
+	// Check API key after --explain (explain doesn't need it).
+	if cfg.LLM.APIKey == "" {
+		return fmt.Errorf("no API key configured. Set ANTHROPIC_API_KEY or add api_key to ~/.config/pls/config.toml")
+	}
 
 	// Print verbose context before LLM call so the user sees it while waiting.
 	if verbose {
