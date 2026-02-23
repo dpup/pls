@@ -1,7 +1,6 @@
 package context
 
 import (
-	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
@@ -12,7 +11,7 @@ func TestGitParser_InRepo(t *testing.T) {
 	run(t, dir, "git", "init")
 	run(t, dir, "git", "config", "user.email", "test@test.com")
 	run(t, dir, "git", "config", "user.name", "Test")
-	os.WriteFile(filepath.Join(dir, "file.txt"), []byte("hello"), 0o644)
+	writeFile(t, filepath.Join(dir, "file.txt"), "hello")
 	run(t, dir, "git", "add", ".")
 	run(t, dir, "git", "commit", "-m", "init")
 

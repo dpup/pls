@@ -10,7 +10,7 @@ func TestLoad_FromFile(t *testing.T) {
 	t.Setenv("ANTHROPIC_API_KEY", "")
 	dir := t.TempDir()
 	cfgPath := filepath.Join(dir, "config.toml")
-	os.WriteFile(cfgPath, []byte(`
+	if err := os.WriteFile(cfgPath, []byte(`
 [llm]
 api_key = "sk-ant-test"
 
@@ -18,7 +18,9 @@ api_key = "sk-ant-test"
 fast = "claude-haiku-4-5-20251001"
 strong = "claude-sonnet-4-5-20250929"
 escalation_threshold = 0.8
-`), 0o644)
+`), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
 
 	cfg, err := LoadFrom(cfgPath)
 	if err != nil {

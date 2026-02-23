@@ -16,11 +16,18 @@ func TestRun_CapturesOutput(t *testing.T) {
 	}
 }
 
-func TestRun_ReturnsError(t *testing.T) {
+func TestRun_ReturnsExitError(t *testing.T) {
 	var stdout bytes.Buffer
-	err := Run("false", &stdout)
+	err := Run("exit 42", &stdout)
 	if err == nil {
-		t.Error("expected error for failing command")
+		t.Fatal("expected error for failing command")
+	}
+	exitErr, ok := err.(*ExitError)
+	if !ok {
+		t.Fatalf("expected *ExitError, got %T: %v", err, err)
+	}
+	if exitErr.Code != 42 {
+		t.Errorf("expected exit code 42, got %d", exitErr.Code)
 	}
 }
 

@@ -11,7 +11,7 @@ func TestOpenCreatesDB(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	defer store.Close()
+	defer store.Close() //nolint:errcheck
 }
 
 func TestRecordAndQueryProjectHistory(t *testing.T) {
@@ -46,12 +46,24 @@ func TestRecordAndQueryProjectHistory(t *testing.T) {
 func TestRecentGlobalHistory(t *testing.T) {
 	store := openTestStore(t)
 
-	repo1, _ := store.EnsureRepo("/project1")
-	repo2, _ := store.EnsureRepo("/project2")
+	repo1, err := store.EnsureRepo("/project1")
+	if err != nil {
+		t.Fatalf("EnsureRepo: %v", err)
+	}
+	repo2, err := store.EnsureRepo("/project2")
+	if err != nil {
+		t.Fatalf("EnsureRepo: %v", err)
+	}
 
-	store.Record(repo1, ".", "build", "make build", OutcomeAccepted)
-	store.Record(repo2, ".", "search", "rg pattern", OutcomeAccepted)
-	store.Record(repo1, ".", "test", "go test", OutcomeRejected)
+	if err := store.Record(repo1, ".", "build", "make build", OutcomeAccepted); err != nil {
+		t.Fatalf("Record: %v", err)
+	}
+	if err := store.Record(repo2, ".", "search", "rg pattern", OutcomeAccepted); err != nil {
+		t.Fatalf("Record: %v", err)
+	}
+	if err := store.Record(repo1, ".", "test", "go test", OutcomeRejected); err != nil {
+		t.Fatalf("Record: %v", err)
+	}
 
 	entries, err := store.RecentGlobal(10)
 	if err != nil {
@@ -66,8 +78,14 @@ func TestRecentGlobalHistory(t *testing.T) {
 func TestEnsureRepoIsIdempotent(t *testing.T) {
 	store := openTestStore(t)
 
-	id1, _ := store.EnsureRepo("/same/path")
-	id2, _ := store.EnsureRepo("/same/path")
+	id1, err := store.EnsureRepo("/same/path")
+	if err != nil {
+		t.Fatalf("EnsureRepo: %v", err)
+	}
+	id2, err := store.EnsureRepo("/same/path")
+	if err != nil {
+		t.Fatalf("EnsureRepo: %v", err)
+	}
 	if id1 != id2 {
 		t.Errorf("expected same id, got %d and %d", id1, id2)
 	}
@@ -80,6 +98,6 @@ func openTestStore(t *testing.T) *Store {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	t.Cleanup(func() { store.Close() })
+	t.Cleanup(func() { _ = store.Close() })
 	return store
 }

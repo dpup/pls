@@ -1,7 +1,6 @@
 package context
 
 import (
-	"os"
 	"path/filepath"
 	"sort"
 	"testing"
@@ -22,7 +21,7 @@ services:
     environment:
       POSTGRES_DB: mydb
 `
-	os.WriteFile(filepath.Join(dir, "docker-compose.yml"), []byte(compose), 0o644)
+	writeFile(t, filepath.Join(dir, "docker-compose.yml"), compose)
 
 	p := &DockerParser{}
 	result, err := p.Parse(dir, dir)
@@ -57,7 +56,7 @@ func TestDockerParser_ComposeYaml(t *testing.T) {
   api:
     build: .
 `
-	os.WriteFile(filepath.Join(dir, "compose.yaml"), []byte(compose), 0o644)
+	writeFile(t, filepath.Join(dir, "compose.yaml"), compose)
 
 	p := &DockerParser{}
 	result, err := p.Parse(dir, dir)
@@ -96,7 +95,7 @@ func TestDockerParser_NoServices(t *testing.T) {
 	compose := `version: "3.8"
 # no services defined
 `
-	os.WriteFile(filepath.Join(dir, "docker-compose.yml"), []byte(compose), 0o644)
+	writeFile(t, filepath.Join(dir, "docker-compose.yml"), compose)
 
 	p := &DockerParser{}
 	result, err := p.Parse(dir, dir)

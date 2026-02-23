@@ -41,13 +41,13 @@ func Open(dbPath string) (*Store, error) {
 	}
 
 	if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("setting WAL mode: %w", err)
 	}
 
 	s := &Store{db: db}
 	if err := s.migrate(); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("migrating: %w", err)
 	}
 	return s, nil
@@ -114,7 +114,7 @@ func (s *Store) ProjectHistory(repoID int64, cwdRel string, limit int) ([]Entry,
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer rows.Close() //nolint:errcheck
 	return scanEntries(rows)
 }
 
@@ -126,7 +126,7 @@ func (s *Store) RecentGlobal(limit int) ([]Entry, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer rows.Close() //nolint:errcheck
 	return scanEntries(rows)
 }
 

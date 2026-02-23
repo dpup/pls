@@ -11,9 +11,8 @@ func TestScriptsParser_WithBinDir(t *testing.T) {
 	dir := t.TempDir()
 
 	binDir := filepath.Join(dir, "bin")
-	os.MkdirAll(binDir, 0o755)
-	os.WriteFile(filepath.Join(binDir, "deploy.sh"), []byte("#!/bin/bash\n"), 0o755)
-	os.WriteFile(filepath.Join(binDir, "setup"), []byte("#!/bin/bash\n"), 0o755)
+	writeFile(t, filepath.Join(binDir, "deploy.sh"), "#!/bin/bash\n")
+	writeFile(t, filepath.Join(binDir, "setup"), "#!/bin/bash\n")
 
 	p := &ScriptsParser{}
 	result, err := p.Parse(dir, dir)
@@ -45,8 +44,7 @@ func TestScriptsParser_WithScriptsDir(t *testing.T) {
 	dir := t.TempDir()
 
 	scriptsDir := filepath.Join(dir, "scripts")
-	os.MkdirAll(scriptsDir, 0o755)
-	os.WriteFile(filepath.Join(scriptsDir, "migrate.py"), []byte("#!/usr/bin/env python\n"), 0o755)
+	writeFile(t, filepath.Join(scriptsDir, "migrate.py"), "#!/usr/bin/env python\n")
 
 	p := &ScriptsParser{}
 	result, err := p.Parse(dir, dir)
@@ -69,13 +67,8 @@ func TestScriptsParser_WithScriptsDir(t *testing.T) {
 func TestScriptsParser_BothDirs(t *testing.T) {
 	dir := t.TempDir()
 
-	binDir := filepath.Join(dir, "bin")
-	os.MkdirAll(binDir, 0o755)
-	os.WriteFile(filepath.Join(binDir, "run.sh"), []byte("#!/bin/bash\n"), 0o755)
-
-	scriptsDir := filepath.Join(dir, "scripts")
-	os.MkdirAll(scriptsDir, 0o755)
-	os.WriteFile(filepath.Join(scriptsDir, "test.sh"), []byte("#!/bin/bash\n"), 0o755)
+	writeFile(t, filepath.Join(dir, "bin", "run.sh"), "#!/bin/bash\n")
+	writeFile(t, filepath.Join(dir, "scripts", "test.sh"), "#!/bin/bash\n")
 
 	p := &ScriptsParser{}
 	result, err := p.Parse(dir, dir)
@@ -107,11 +100,9 @@ func TestScriptsParser_SkipsSubdirectories(t *testing.T) {
 	dir := t.TempDir()
 
 	binDir := filepath.Join(dir, "bin")
-	os.MkdirAll(binDir, 0o755)
-	os.WriteFile(filepath.Join(binDir, "deploy.sh"), []byte("#!/bin/bash\n"), 0o755)
-	// Create a subdirectory inside bin/ — should be skipped
-	os.MkdirAll(filepath.Join(binDir, "helpers"), 0o755)
-	os.WriteFile(filepath.Join(binDir, "helpers", "util.sh"), []byte("#!/bin/bash\n"), 0o755)
+	writeFile(t, filepath.Join(binDir, "deploy.sh"), "#!/bin/bash\n")
+	// Create a file in a subdirectory inside bin/ — should be skipped
+	writeFile(t, filepath.Join(binDir, "helpers", "util.sh"), "#!/bin/bash\n")
 
 	p := &ScriptsParser{}
 	result, err := p.Parse(dir, dir)
@@ -147,8 +138,12 @@ func TestScriptsParser_NoScriptDirs(t *testing.T) {
 func TestScriptsParser_EmptyDirs(t *testing.T) {
 	dir := t.TempDir()
 
-	os.MkdirAll(filepath.Join(dir, "bin"), 0o755)
-	os.MkdirAll(filepath.Join(dir, "scripts"), 0o755)
+	if err := os.MkdirAll(filepath.Join(dir, "bin"), 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(dir, "scripts"), 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
 
 	p := &ScriptsParser{}
 	result, err := p.Parse(dir, dir)

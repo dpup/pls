@@ -1,7 +1,6 @@
 package context
 
 import (
-	"os"
 	"path/filepath"
 	"sort"
 	"testing"
@@ -24,7 +23,7 @@ build:
 # This is a comment
 	indented-not-a-target:
 `
-	os.WriteFile(filepath.Join(dir, "Makefile"), []byte(makefile), 0o644)
+	writeFile(t, filepath.Join(dir, "Makefile"), makefile)
 
 	p := &MakeParser{}
 	result, err := p.Parse(dir, dir)

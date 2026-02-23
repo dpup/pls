@@ -143,7 +143,7 @@ func (c *Client) callWithTools(model, prompt string, handler *toolHandler) (*Res
 				}
 			case "tool_use":
 				var inputObj any
-				json.Unmarshal(block.Input, &inputObj)
+				_ = json.Unmarshal(block.Input, &inputObj)
 				assistantBlocks = append(assistantBlocks, anthropic.NewToolUseBlock(block.ID, inputObj, block.Name))
 			}
 		}
@@ -154,7 +154,7 @@ func (c *Client) callWithTools(model, prompt string, handler *toolHandler) (*Res
 		var resultBlocks []anthropic.ContentBlockParamUnion
 		for _, tu := range toolUses {
 			var inputMap map[string]any
-			json.Unmarshal(tu.Input, &inputMap)
+			_ = json.Unmarshal(tu.Input, &inputMap)
 
 			result, isError := handler.execute(tu.Name, tu.Input)
 			resultBlocks = append(resultBlocks, anthropic.NewToolResultBlock(tu.ID, result, isError))

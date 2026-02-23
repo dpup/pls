@@ -2,6 +2,7 @@ package cli
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/dpup/pls/internal/config"
 	plsctx "github.com/dpup/pls/internal/context"
+	plsexec "github.com/dpup/pls/internal/exec"
 	"github.com/dpup/pls/internal/history"
 	"github.com/dpup/pls/internal/llm"
 	"github.com/dpup/pls/internal/tui"
@@ -24,11 +26,13 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "pls [intent]",
-	Short: "Project-aware natural language shell command router",
-	Long:  "Translates natural language into the right shell command for your current project.",
-	Args:  cobra.MinimumNArgs(1),
-	RunE:  run,
+	Use:           "pls [intent]",
+	Short:         "Project-aware natural language shell command router",
+	Long:          "Translates natural language into the right shell command for your current project.",
+	Args:          cobra.MinimumNArgs(1),
+	RunE:          run,
+	SilenceErrors: true,
+	SilenceUsage:  true,
 }
 
 func init() {
@@ -41,6 +45,13 @@ func init() {
 func Execute(version string) {
 	rootCmd.Version = version
 	if err := rootCmd.Execute(); err != nil {
+		// If the executed command failed, forward its exit code silently.
+		var exitErr *plsexec.ExitError
+		if errors.As(err, &exitErr) {
+			os.Exit(exitErr.Code)
+		}
+		// For pls's own errors, print the error message.
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }
@@ -66,7 +77,7 @@ func run(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("opening history: %w", err)
 	}
-	defer store.Close()
+	defer store.Close() //nolint:errcheck
 
 	// Query history
 	repoID, _ := store.EnsureRepo(snap.RepoRoot)
@@ -124,9 +135,9 @@ func run(cmd *cobra.Command, args []string) error {
 	// Record outcome
 	switch result.Action {
 	case tui.ActionRun:
-		store.Record(repoID, snap.CwdRel, intent, result.Candidate.Cmd, history.OutcomeAccepted)
+		_ = store.Record(repoID, snap.CwdRel, intent, result.Candidate.Cmd, history.OutcomeAccepted)
 	case tui.ActionCopy:
-		store.Record(repoID, snap.CwdRel, intent, result.Candidate.Cmd, history.OutcomeCopied)
+		_ = store.Record(repoID, snap.CwdRel, intent, result.Candidate.Cmd, history.OutcomeCopied)
 	}
 
 	// Execute the action

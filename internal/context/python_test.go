@@ -1,7 +1,6 @@
 package context
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 )
@@ -9,8 +8,8 @@ import (
 func TestPythonParser_WithPyprojectAndPoetry(t *testing.T) {
 	dir := t.TempDir()
 
-	os.WriteFile(filepath.Join(dir, "pyproject.toml"), []byte("[tool.poetry]\nname = \"myapp\"\n"), 0o644)
-	os.WriteFile(filepath.Join(dir, "poetry.lock"), []byte("# lock"), 0o644)
+	writeFile(t, filepath.Join(dir, "pyproject.toml"), "[tool.poetry]\nname = \"myapp\"\n")
+	writeFile(t, filepath.Join(dir, "poetry.lock"), "# lock")
 
 	p := &PythonParser{}
 	result, err := p.Parse(dir, dir)
@@ -41,8 +40,8 @@ func TestPythonParser_WithPyprojectAndPoetry(t *testing.T) {
 func TestPythonParser_WithUv(t *testing.T) {
 	dir := t.TempDir()
 
-	os.WriteFile(filepath.Join(dir, "pyproject.toml"), []byte("[project]\nname = \"myapp\"\n"), 0o644)
-	os.WriteFile(filepath.Join(dir, "uv.lock"), []byte("# lock"), 0o644)
+	writeFile(t, filepath.Join(dir, "pyproject.toml"), "[project]\nname = \"myapp\"\n")
+	writeFile(t, filepath.Join(dir, "uv.lock"), "# lock")
 
 	p := &PythonParser{}
 	result, err := p.Parse(dir, dir)
@@ -62,8 +61,8 @@ func TestPythonParser_WithUv(t *testing.T) {
 func TestPythonParser_WithPipenv(t *testing.T) {
 	dir := t.TempDir()
 
-	os.WriteFile(filepath.Join(dir, "Pipfile"), []byte("[packages]\n"), 0o644)
-	os.WriteFile(filepath.Join(dir, "Pipfile.lock"), []byte("{}"), 0o644)
+	writeFile(t, filepath.Join(dir, "Pipfile"), "[packages]\n")
+	writeFile(t, filepath.Join(dir, "Pipfile.lock"), "{}")
 
 	p := &PythonParser{}
 	result, err := p.Parse(dir, dir)
@@ -83,7 +82,7 @@ func TestPythonParser_WithPipenv(t *testing.T) {
 func TestPythonParser_WithRequirementsTxt(t *testing.T) {
 	dir := t.TempDir()
 
-	os.WriteFile(filepath.Join(dir, "requirements.txt"), []byte("flask==2.0\n"), 0o644)
+	writeFile(t, filepath.Join(dir, "requirements.txt"), "flask==2.0\n")
 
 	p := &PythonParser{}
 	result, err := p.Parse(dir, dir)
@@ -111,8 +110,8 @@ func TestPythonParser_WithRequirementsTxt(t *testing.T) {
 func TestPythonParser_VenvDetection(t *testing.T) {
 	dir := t.TempDir()
 
-	os.WriteFile(filepath.Join(dir, "pyproject.toml"), []byte("[project]\n"), 0o644)
-	os.MkdirAll(filepath.Join(dir, ".venv"), 0o755)
+	writeFile(t, filepath.Join(dir, "pyproject.toml"), "[project]\n")
+	writeFile(t, filepath.Join(dir, ".venv", ".keep"), "")
 
 	p := &PythonParser{}
 	result, err := p.Parse(dir, dir)

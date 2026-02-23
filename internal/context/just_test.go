@@ -1,7 +1,6 @@
 package context
 
 import (
-	"os"
 	"path/filepath"
 	"sort"
 	"testing"
@@ -18,7 +17,7 @@ test *args:
 build:
     cargo build --release
 `
-	os.WriteFile(filepath.Join(dir, "Justfile"), []byte(justfile), 0o644)
+	writeFile(t, filepath.Join(dir, "Justfile"), justfile)
 
 	p := &JustParser{}
 	result, err := p.Parse(dir, dir)
@@ -65,7 +64,7 @@ func TestJustParser_LowercaseJustfile(t *testing.T) {
 	justfile := `deploy:
     kubectl apply -f deploy.yaml
 `
-	os.WriteFile(filepath.Join(dir, "justfile"), []byte(justfile), 0o644)
+	writeFile(t, filepath.Join(dir, "justfile"), justfile)
 
 	p := &JustParser{}
 	result, err := p.Parse(dir, dir)

@@ -22,7 +22,7 @@ func (g *GoParser) Parse(repoRoot, cwd string) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer f.Close() //nolint:errcheck
 
 	data := map[string]any{}
 
@@ -57,23 +57,8 @@ var skipDirs = map[string]bool{
 // findGoPackages walks the repo tree and returns all Go package paths
 // (relative, with "./" prefix) and the subset that contain test files.
 func findGoPackages(root string) (packages, testPackages []string) {
-	filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
-			return nil
-		}
-		if d.IsDir() {
-			name := d.Name()
-			if strings.HasPrefix(name, ".") || skipDirs[name] {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-		return nil
-	})
-
-	// Second pass: for each directory, check for .go and _test.go files.
 	seen := map[string]bool{}
-	filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+	_ = filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return nil
 		}

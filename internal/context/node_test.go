@@ -1,7 +1,6 @@
 package context
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 )
@@ -18,9 +17,9 @@ func TestNodeParser_WithPackageJSON(t *testing.T) {
   },
   "workspaces": ["packages/*"]
 }`
-	os.WriteFile(filepath.Join(dir, "package.json"), []byte(packageJSON), 0o644)
+	writeFile(t, filepath.Join(dir, "package.json"), packageJSON)
 	// bun.lockb indicates bun package manager
-	os.WriteFile(filepath.Join(dir, "bun.lockb"), []byte{}, 0o644)
+	writeFile(t, filepath.Join(dir, "bun.lockb"), "")
 
 	p := &NodeParser{}
 	result, err := p.Parse(dir, dir)
@@ -78,10 +77,10 @@ func TestNodeParser_SubdirDetection(t *testing.T) {
     "dev": "vite"
   }
 }`
-	os.WriteFile(filepath.Join(dir, "package.json"), []byte(packageJSON), 0o644)
+	writeFile(t, filepath.Join(dir, "package.json"), packageJSON)
 
 	sub := filepath.Join(dir, "src", "lib")
-	os.MkdirAll(sub, 0o755)
+	writeFile(t, filepath.Join(sub, ".keep"), "")
 
 	p := &NodeParser{}
 	result, err := p.Parse(dir, sub)

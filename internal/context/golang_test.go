@@ -6,6 +6,17 @@ import (
 	"testing"
 )
 
+// writeFile is a test helper that writes a file and fails on error.
+func writeFile(t *testing.T, path, content string) {
+	t.Helper()
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatalf("write file: %v", err)
+	}
+}
+
 func TestGoParser_WithGoMod(t *testing.T) {
 	dir := t.TempDir()
 
@@ -17,9 +28,9 @@ require (
 	github.com/spf13/cobra v1.8.0
 )
 `
-	os.WriteFile(filepath.Join(dir, "go.mod"), []byte(goMod), 0o644)
-	os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main"), 0o644)
-	os.WriteFile(filepath.Join(dir, "main_test.go"), []byte("package main"), 0o644)
+	writeFile(t, filepath.Join(dir, "go.mod"), goMod)
+	writeFile(t, filepath.Join(dir, "main.go"), "package main")
+	writeFile(t, filepath.Join(dir, "main_test.go"), "package main")
 
 	p := &GoParser{}
 	result, err := p.Parse(dir, dir)
@@ -53,18 +64,12 @@ require (
 func TestGoParser_WithGoModSubdirTests(t *testing.T) {
 	dir := t.TempDir()
 
-	goMod := `module github.com/example/subtest
+	writeFile(t, filepath.Join(dir, "go.mod"), "module github.com/example/subtest\n\ngo 1.21\n")
+	writeFile(t, filepath.Join(dir, "main.go"), "package main")
 
-go 1.21
-`
-	os.WriteFile(filepath.Join(dir, "go.mod"), []byte(goMod), 0o644)
-	os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main"), 0o644)
-
-	// Create a test file in a nested subdir.
 	sub := filepath.Join(dir, "internal", "pkg")
-	os.MkdirAll(sub, 0o755)
-	os.WriteFile(filepath.Join(sub, "util.go"), []byte("package pkg"), 0o644)
-	os.WriteFile(filepath.Join(sub, "util_test.go"), []byte("package pkg"), 0o644)
+	writeFile(t, filepath.Join(sub, "util.go"), "package pkg")
+	writeFile(t, filepath.Join(sub, "util_test.go"), "package pkg")
 
 	p := &GoParser{}
 	result, err := p.Parse(dir, dir)
@@ -90,7 +95,6 @@ go 1.21
 		t.Errorf("expected test_packages to include './internal/pkg', got %v", testPkgs)
 	}
 
-	// Check packages list includes both root and subdir.
 	pkgs, ok := result.Data["packages"].([]string)
 	if !ok {
 		t.Fatalf("expected packages to be []string, got %T", result.Data["packages"])
@@ -103,12 +107,8 @@ go 1.21
 func TestGoParser_NoTests(t *testing.T) {
 	dir := t.TempDir()
 
-	goMod := `module github.com/example/notests
-
-go 1.21
-`
-	os.WriteFile(filepath.Join(dir, "go.mod"), []byte(goMod), 0o644)
-	os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main"), 0o644)
+	writeFile(t, filepath.Join(dir, "go.mod"), "module github.com/example/notests\n\ngo 1.21\n")
+	writeFile(t, filepath.Join(dir, "main.go"), "package main")
 
 	p := &GoParser{}
 	result, err := p.Parse(dir, dir)
@@ -140,13 +140,12 @@ func TestGoParser_NoGoMod(t *testing.T) {
 func TestGoParser_SkipsVendor(t *testing.T) {
 	dir := t.TempDir()
 
-	os.WriteFile(filepath.Join(dir, "go.mod"), []byte("module example.com/m\n\ngo 1.21\n"), 0o644)
-	os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main"), 0o644)
+	writeFile(t, filepath.Join(dir, "go.mod"), "module example.com/m\n\ngo 1.21\n")
+	writeFile(t, filepath.Join(dir, "main.go"), "package main")
 
 	vendor := filepath.Join(dir, "vendor", "somepkg")
-	os.MkdirAll(vendor, 0o755)
-	os.WriteFile(filepath.Join(vendor, "lib.go"), []byte("package somepkg"), 0o644)
-	os.WriteFile(filepath.Join(vendor, "lib_test.go"), []byte("package somepkg"), 0o644)
+	writeFile(t, filepath.Join(vendor, "lib.go"), "package somepkg")
+	writeFile(t, filepath.Join(vendor, "lib_test.go"), "package somepkg")
 
 	p := &GoParser{}
 	result, err := p.Parse(dir, dir)

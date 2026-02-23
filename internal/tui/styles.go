@@ -29,20 +29,6 @@ var (
 	toolErrorStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("196")).PaddingLeft(6)
 )
 
-// riskStyle returns the appropriate lipgloss style for the given risk level.
-func riskStyle(risk string) lipgloss.Style {
-	switch risk {
-	case "safe":
-		return riskSafe
-	case "moderate":
-		return riskModerate
-	case "dangerous":
-		return riskDangerous
-	default:
-		return riskSafe
-	}
-}
-
 // riskLabel returns a color-coded risk label string for display.
 func riskLabel(risk string) string {
 	switch risk {
