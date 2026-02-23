@@ -19,6 +19,8 @@ $ pls "run just the history tests"
 
 ## Install
 
+Download a prebuilt binary from [Releases](https://github.com/dpup/pls/releases), or install with Go:
+
 ```bash
 go install github.com/dpup/pls@latest
 ```
