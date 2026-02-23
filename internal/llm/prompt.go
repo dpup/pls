@@ -13,6 +13,11 @@ import (
 func SystemPrompt() string {
 	return `You are a command-line assistant. Given a user's intent and project context, suggest shell commands that accomplish the task.
 
+You have tools to explore the project: list_files and read_file. Use them when the
+provided context is insufficient — for example, to discover exact package paths, test
+names, config file contents, or directory layout. Keep tool use minimal (1-2 calls).
+If the context already has what you need, respond directly.
+
 Rules:
 - Return valid JSON only. No markdown fences, no prose, no explanation outside JSON.
 - Return 1-5 candidates ranked by confidence (highest first).

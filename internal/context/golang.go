@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -25,7 +26,7 @@ func (g *GoParser) Parse(repoRoot, cwd string) (*Result, error) {
 
 	data := map[string]any{}
 
-	// Parse module name from first "module " line
+	// Parse module name from first "module " line.
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -35,43 +36,85 @@ func (g *GoParser) Parse(repoRoot, cwd string) (*Result, error) {
 		}
 	}
 
-	// Check for _test.go files in root + one level of subdirs
-	data["has_tests"] = hasGoTests(repoRoot)
+	// Walk the tree to find Go packages and which have tests.
+	packages, testPackages := findGoPackages(repoRoot)
+	if len(packages) > 0 {
+		data["packages"] = packages
+	}
+	if len(testPackages) > 0 {
+		data["test_packages"] = testPackages
+	}
 
 	return &Result{Name: g.Name(), Data: data}, nil
 }
 
-func hasGoTests(root string) bool {
-	// Check root directory
-	entries, err := os.ReadDir(root)
-	if err != nil {
-		return false
-	}
-	for _, e := range entries {
-		if !e.IsDir() && strings.HasSuffix(e.Name(), "_test.go") {
-			return true
-		}
-	}
+// skipDirs are directory names that should never be walked.
+var skipDirs = map[string]bool{
+	"vendor": true, "node_modules": true, "testdata": true,
+	".git": true, ".hg": true, ".svn": true,
+}
 
-	// Check one level of subdirectories
-	for _, e := range entries {
-		if !e.IsDir() {
-			continue
-		}
-		// Skip hidden directories and common non-source dirs
-		if strings.HasPrefix(e.Name(), ".") {
-			continue
-		}
-		subEntries, err := os.ReadDir(filepath.Join(root, e.Name()))
+// findGoPackages walks the repo tree and returns all Go package paths
+// (relative, with "./" prefix) and the subset that contain test files.
+func findGoPackages(root string) (packages, testPackages []string) {
+	filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
-			continue
+			return nil
 		}
-		for _, se := range subEntries {
-			if !se.IsDir() && strings.HasSuffix(se.Name(), "_test.go") {
-				return true
+		if d.IsDir() {
+			name := d.Name()
+			if strings.HasPrefix(name, ".") || skipDirs[name] {
+				return filepath.SkipDir
 			}
+			return nil
+		}
+		return nil
+	})
+
+	// Second pass: for each directory, check for .go and _test.go files.
+	seen := map[string]bool{}
+	filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if d.IsDir() {
+			name := d.Name()
+			if strings.HasPrefix(name, ".") || skipDirs[name] {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(d.Name(), ".go") {
+			return nil
+		}
+
+		dir := filepath.Dir(path)
+		rel, err := filepath.Rel(root, dir)
+		if err != nil {
+			return nil
+		}
+		pkg := "./" + filepath.ToSlash(rel)
+		if pkg == "./." {
+			pkg = "."
+		}
+
+		if !seen[pkg] {
+			seen[pkg] = true
+			packages = append(packages, pkg)
+		}
+		if strings.HasSuffix(d.Name(), "_test.go") {
+			seen[pkg+"__test"] = true
+		}
+		return nil
+	})
+
+	sort.Strings(packages)
+
+	for _, p := range packages {
+		if seen[p+"__test"] {
+			testPackages = append(testPackages, p)
 		}
 	}
 
-	return false
+	return packages, testPackages
 }

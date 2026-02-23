@@ -72,20 +72,26 @@ func run(cmd *cobra.Command, args []string) error {
 	projectHistory, _ := store.ProjectHistory(repoID, snap.CwdRel, 20)
 	globalHistory, _ := store.RecentGlobal(10)
 
+	// Print verbose context before LLM call so the user sees it while waiting.
+	if verbose {
+		fmt.Fprint(os.Stderr, tui.PrintContext(*snap, projectHistory, globalHistory))
+	}
+
 	// Generate candidates
 	client := llm.NewClient(cfg)
 	resp, err := client.Generate(*snap, intent, projectHistory, globalHistory)
 	if err != nil {
 		return fmt.Errorf("generating commands: %w", err)
 	}
+
+	// Print tool-use log if verbose and tools were used.
+	if verbose {
+		fmt.Fprint(os.Stderr, tui.PrintToolLog(resp.Rounds))
+	}
+
 	if len(resp.Candidates) == 0 {
 		fmt.Println("No command candidates generated.")
 		return nil
-	}
-
-	// Print verbose context if requested.
-	if verbose {
-		fmt.Fprint(os.Stderr, tui.PrintContext(*snap, projectHistory, globalHistory))
 	}
 
 	// Non-interactive mode

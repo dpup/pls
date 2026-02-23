@@ -21,6 +21,12 @@ var (
 	sectionHeaderStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("63")).PaddingLeft(2)
 	labelStyle         = lipgloss.NewStyle().Foreground(lipgloss.Color("245")).PaddingLeft(2)
 	valueStyle         = lipgloss.NewStyle().Foreground(lipgloss.Color("252"))
+
+	// Tool log styles.
+	toolNameStyle   = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("39")).PaddingLeft(4)
+	toolInputStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("245"))
+	toolResultStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("242")).PaddingLeft(6)
+	toolErrorStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("196")).PaddingLeft(6)
 )
 
 // riskStyle returns the appropriate lipgloss style for the given risk level.
