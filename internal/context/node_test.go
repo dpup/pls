@@ -28,6 +28,7 @@ func TestNodeParser_WithPackageJSON(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	scripts, ok := result.Data["scripts"].([]string)
@@ -89,6 +90,7 @@ func TestNodeParser_SubdirDetection(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("expected result from subdir, got nil")
+		return
 	}
 
 	scripts, ok := result.Data["scripts"].([]string)

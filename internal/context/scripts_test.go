@@ -21,6 +21,7 @@ func TestScriptsParser_WithBinDir(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	scripts, ok := result.Data["scripts"].([]string)
@@ -53,6 +54,7 @@ func TestScriptsParser_WithScriptsDir(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	scripts, ok := result.Data["scripts"].([]string)
@@ -77,6 +79,7 @@ func TestScriptsParser_BothDirs(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	scripts, ok := result.Data["scripts"].([]string)
@@ -111,6 +114,7 @@ func TestScriptsParser_SkipsSubdirectories(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	scripts, ok := result.Data["scripts"].([]string)

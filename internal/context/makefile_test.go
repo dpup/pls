@@ -32,6 +32,7 @@ build:
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	targets, ok := result.Data["targets"].([]string)

@@ -39,6 +39,7 @@ require (
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	module, ok := result.Data["module"].(string)
@@ -78,6 +79,7 @@ func TestGoParser_WithGoModSubdirTests(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	testPkgs, ok := result.Data["test_packages"].([]string)
@@ -117,6 +119,7 @@ func TestGoParser_NoTests(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	if result.Data["test_packages"] != nil {

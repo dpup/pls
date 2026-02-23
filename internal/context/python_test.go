@@ -18,6 +18,7 @@ func TestPythonParser_WithPyprojectAndPoetry(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	pm, ok := result.Data["package_manager"].(string)
@@ -50,6 +51,7 @@ func TestPythonParser_WithUv(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	pm := result.Data["package_manager"].(string)
@@ -71,6 +73,7 @@ func TestPythonParser_WithPipenv(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	pm := result.Data["package_manager"].(string)
@@ -91,6 +94,7 @@ func TestPythonParser_WithRequirementsTxt(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	pm := result.Data["package_manager"].(string)
@@ -120,6 +124,7 @@ func TestPythonParser_VenvDetection(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	venv, ok := result.Data["venv"].(string)

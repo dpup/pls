@@ -22,6 +22,7 @@ func TestGitParser_InRepo(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 	if result.Data["repo_root"] != dir {
 		t.Errorf("expected repo_root %q, got %q", dir, result.Data["repo_root"])

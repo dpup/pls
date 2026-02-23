@@ -30,6 +30,7 @@ services:
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	services, ok := result.Data["services"].([]string)
@@ -65,6 +66,7 @@ func TestDockerParser_ComposeYaml(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	services, ok := result.Data["services"].([]string)

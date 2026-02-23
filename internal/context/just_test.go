@@ -26,6 +26,7 @@ build:
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	recipes, ok := result.Data["recipes"].([]string)
@@ -73,6 +74,7 @@ func TestJustParser_LowercaseJustfile(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatal("expected result, got nil")
+		return
 	}
 
 	recipes, ok := result.Data["recipes"].([]string)
