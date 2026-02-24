@@ -58,6 +58,22 @@ The fast model gets up to 2 tool rounds (`maxToolTurns`) to explore the repo via
 - `llm.Response` — list of candidates plus tool-use rounds
 - `history.Entry` — recorded intent→command→outcome tuple
 
+## Commit Messages
+
+Use [Conventional Commits](https://www.conventionalcommits.org/) format:
+
+```
+<type>: <description>
+
+[optional body]
+```
+
+Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`, `perf`
+
+- Use lowercase, imperative mood (e.g., "add feature" not "Added feature")
+- Keep the subject line under 72 characters
+- Use the body for context on *why*, not *what*
+
 ## Conventions
 
 - Package imports use `plsctx` and `plsexec` aliases to avoid collision with stdlib `context` and `exec`
