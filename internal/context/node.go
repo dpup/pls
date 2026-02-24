@@ -10,6 +10,8 @@ import (
 // findFileUpward walks from start up to root looking for filename.
 // Returns the full path if found, or empty string if not.
 func findFileUpward(filename, start, root string) string {
+	start = filepath.Clean(start)
+	root = filepath.Clean(root)
 	dir := start
 	for {
 		candidate := filepath.Join(dir, filename)
