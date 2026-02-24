@@ -47,6 +47,33 @@ func TestLoad_Defaults(t *testing.T) {
 	}
 }
 
+func TestLoad_PartialModelsSection(t *testing.T) {
+	t.Setenv("ANTHROPIC_API_KEY", "")
+	dir := t.TempDir()
+	cfgPath := filepath.Join(dir, "config.toml")
+	// Only set fast model, omit everything else in [llm.models].
+	if err := os.WriteFile(cfgPath, []byte(`
+[llm]
+api_key = "sk-test"
+
+[llm.models]
+fast = "claude-haiku-4-5-20251001"
+`), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+
+	cfg, err := LoadFrom(cfgPath)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if cfg.LLM.Models.EscalationThreshold != 0.7 {
+		t.Errorf("expected default threshold 0.7 when omitted, got %v", cfg.LLM.Models.EscalationThreshold)
+	}
+	if cfg.LLM.Models.Strong != "claude-sonnet-4-5-20250929" {
+		t.Errorf("expected default strong model when omitted, got %q", cfg.LLM.Models.Strong)
+	}
+}
+
 func TestLoad_EnvOverridesKey(t *testing.T) {
 	t.Setenv("ANTHROPIC_API_KEY", "sk-from-env")
 	cfg, err := LoadFrom("/nonexistent/path")
