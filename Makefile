@@ -1,7 +1,7 @@
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 LDFLAGS  = -ldflags "-X main.version=$(VERSION)"
 
-.PHONY: build test lint vet fix security clean
+.PHONY: build test lint vet fmt fix security clean
 
 ## build: compile the pls binary
 build:
@@ -20,9 +20,12 @@ lint: vet
 vet:
 	go vet ./...
 
+## fmt: run gofmt -s (simplify) on all Go files
+fmt:
+	gofmt -s -w .
+
 ## fix: auto-format and tidy
-fix:
-	gofmt -w .
+fix: fmt
 	go mod tidy
 
 ## security: run govulncheck for known vulnerabilities

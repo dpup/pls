@@ -13,7 +13,8 @@ make build      # compile binary with version injection via -ldflags
 make test       # go test ./...
 make lint       # golangci-lint run ./... (includes go vet)
 make vet        # go vet ./... only
-make fix        # gofmt -w . && go mod tidy
+make fmt        # gofmt -s -w .
+make fix        # fmt + go mod tidy
 make security   # govulncheck ./...
 ```
 
