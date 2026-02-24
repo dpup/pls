@@ -24,7 +24,12 @@ func (g *GitParser) Parse(repoRoot, cwd string) (*Result, error) {
 		data["branch"] = branch
 	}
 
-	if changed, err := gitOutput(repoRoot, "diff", "--name-only", "HEAD"); err == nil && changed != "" {
+	// Try HEAD first (normal repos), fall back to --cached (initial commit).
+	changed, err := gitOutput(repoRoot, "diff", "--name-only", "HEAD")
+	if err != nil {
+		changed, err = gitOutput(repoRoot, "diff", "--cached", "--name-only")
+	}
+	if err == nil && changed != "" {
 		data["changed_files"] = strings.Split(changed, "\n")
 	}
 

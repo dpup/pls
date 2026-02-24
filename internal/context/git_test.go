@@ -6,6 +6,33 @@ import (
 	"testing"
 )
 
+func TestGitParser_InitialCommit_StagedFiles(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "git", "init")
+	run(t, dir, "git", "config", "user.email", "test@test.com")
+	run(t, dir, "git", "config", "user.name", "Test")
+	writeFile(t, filepath.Join(dir, "file.txt"), "hello")
+	run(t, dir, "git", "add", ".")
+	// No commit yet — HEAD does not exist.
+
+	p := &GitParser{}
+	result, err := p.Parse(dir, dir)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	if result == nil {
+		t.Fatal("expected result, got nil")
+	}
+	changed, ok := result.Data["changed_files"]
+	if !ok {
+		t.Fatal("expected changed_files in result for staged files before first commit")
+	}
+	files, ok := changed.([]string)
+	if !ok || len(files) == 0 {
+		t.Errorf("expected non-empty changed_files, got %v", changed)
+	}
+}
+
 func TestGitParser_InRepo(t *testing.T) {
 	dir := t.TempDir()
 	run(t, dir, "git", "init")
