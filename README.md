@@ -19,6 +19,10 @@ $ pls run just the history tests
 
 Deterministic parsers collect your project's real affordances quickly. The model reasons over that structured context to map your intent to a concrete command. When it needs specifics — an exact test name or config value — it can read your files directly.
 
+## Why
+
+I work on a lot of different projects across different ecosystems — jumping from yarn to npm to bun to Make to poetry — and I can never remember the right incantation. I realized that when I was inside a Claude Code session I never had that problem; the model just knew. I wanted something faster and lighter weight for those moments when I just need the command, without spinning up a full coding session.
+
 ## Install
 
 Download a prebuilt binary from [Releases](https://github.com/dpup/pls/releases), or install with Go:
