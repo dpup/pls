@@ -1,5 +1,12 @@
 # pls
 
+[![CI](https://github.com/dpup/pls/actions/workflows/test.yml/badge.svg)](https://github.com/dpup/pls/actions/workflows/test.yml)
+[![Release](https://github.com/dpup/pls/actions/workflows/release.yml/badge.svg)](https://github.com/dpup/pls/actions/workflows/release.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/dpup/pls.svg)](https://pkg.go.dev/github.com/dpup/pls)
+[![Go Report Card](https://goreportcard.com/badge/github.com/dpup/pls)](https://goreportcard.com/report/github.com/dpup/pls)
+[![GitHub release](https://img.shields.io/github/v/release/dpup/pls)](https://github.com/dpup/pls/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Describe what you want. Get the exact command for your project.
 
 ```
