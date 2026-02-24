@@ -194,6 +194,35 @@ func TestPrintToolLog_SingleRound(t *testing.T) {
 	}
 }
 
+func TestFormatValue_MapStringString(t *testing.T) {
+	m := map[string]any{
+		"targets": map[string]string{
+			"test":  "Run all tests",
+			"build": "Build the binary",
+			"lint":  "",
+		},
+	}
+
+	// Simulate what PrintContext does for a result.
+	output := formatValue(m["targets"])
+
+	// Should show "target: description" for targets with descriptions.
+	if !strings.Contains(output, "test: Run all tests") {
+		t.Errorf("expected 'test: Run all tests' in output, got:\n%s", output)
+	}
+	if !strings.Contains(output, "build: Build the binary") {
+		t.Errorf("expected 'build: Build the binary' in output, got:\n%s", output)
+	}
+	// Target without description should just show the name.
+	if !strings.Contains(output, "lint") {
+		t.Errorf("expected 'lint' in output, got:\n%s", output)
+	}
+	// Should NOT contain Go map dump format.
+	if strings.Contains(output, "map[") {
+		t.Errorf("should not contain Go map dump 'map[', got:\n%s", output)
+	}
+}
+
 func TestFormatPrompt(t *testing.T) {
 	prompt := "You are a helpful CLI assistant.\nPlease suggest a command."
 

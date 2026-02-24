@@ -199,7 +199,7 @@ func (c *Client) call(model, prompt string) (*Response, error) {
 // parseTextResponse extracts JSON candidates from the LLM's text response.
 func parseTextResponse(text, model string) (*Response, error) {
 	if text == "" {
-		return nil, fmt.Errorf("no text content in response from %s", model)
+		return nil, fmt.Errorf("the model returned an empty response — try rephrasing your intent")
 	}
 
 	text = extractJSON(text)

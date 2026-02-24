@@ -120,6 +120,38 @@ Every candidate is classified as **safe**, **moderate**, or **dangerous** so you
 
 Every command you accept or copy is recorded in a local SQLite database. This history is fed back into future prompts so the LLM learns your preferences — if you always use `make test` instead of `go test ./...`, it picks that up. Rejected commands are marked so they won't be suggested again.
 
+## Why not just use Claude Code?
+
+`claude -p` can suggest commands too, but it infers project structure from scratch every time. `pls` front-loads that work with fast, deterministic parsers and feeds the LLM a compact, structured snapshot — so it gives more project-aware suggestions.
+
+Informal comparison on a Go project with a Makefile (~130k LOC). All three use Claude Haiku:
+
+**"run the e2e tests"**
+```
+pls (3.2s)       →  make test-e2e                                        ✅ correct
+claude -p (3.5s) →  go test -tags=e2e -v ./internal/e2e/                 ⚠️ works, missed Makefile target
+```
+
+**"run the logging e2e tests"**
+```
+pls (3.2s)       →  make test-e2e ARGS='-run Logs'                       ✅ correct
+claude -p (5.0s) →  go test -tags=e2e -v ./internal/e2e -run TestLog     ❌ fabricated test name, runs nothing
+```
+
+**"run the tests"**
+```
+pls (3.3s)       →  make test  (+ 2 alternatives)                        ✅ correct
+claude -p (3.5s) →  go test ./...                                        ⚠️ works, missed Makefile target
+```
+
+**"run the config tests"**
+```
+pls (3.6s)       →  go test ./internal/config -v                         ✅ correct (Makefile target as option 2)
+claude -p (3.9s) →  go test ./internal/config/...                        ⚠️ works, missed Makefile target
+```
+
+`pls` uses Makefile targets and real test names because its parsers detect them before the LLM runs. `claude -p` infers structure from raw file access and often falls back to generic commands — or fabricates names that don't exist. And because `pls` records which commands you accept, it learns your preferences over time — if you pick the Makefile target once, it'll rank it first next time.
+
 ## Development
 
 ```bash

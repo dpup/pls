@@ -24,14 +24,18 @@ func (m *MakeParser) Parse(repoRoot, cwd string) (*Result, error) {
 		return nil, err
 	}
 
-	var targets []string
+	targets := make(map[string]string)
 	for _, line := range strings.Split(string(raw), "\n") {
 		// Skip indented lines (tab-prefixed) and comments
 		if strings.HasPrefix(line, "\t") || strings.HasPrefix(line, "#") {
 			continue
 		}
 		if m := makeTargetRe.FindStringSubmatch(line); m != nil {
-			targets = append(targets, m[1])
+			desc := ""
+			if idx := strings.Index(line, "## "); idx >= 0 {
+				desc = strings.TrimSpace(line[idx+3:])
+			}
+			targets[m[1]] = desc
 		}
 	}
 

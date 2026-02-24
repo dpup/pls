@@ -136,6 +136,16 @@ func formatValue(v any) string {
 		return strings.Join(items, ", ")
 	case []string:
 		return strings.Join(val, ", ")
+	case map[string]string:
+		items := make([]string, 0, len(val))
+		for k, desc := range val {
+			if desc != "" {
+				items = append(items, k+": "+desc)
+			} else {
+				items = append(items, k)
+			}
+		}
+		return strings.Join(items, ", ")
 	default:
 		return fmt.Sprintf("%v", v)
 	}
