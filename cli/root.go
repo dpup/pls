@@ -67,10 +67,19 @@ func newRootCmd() *cobra.Command {
 		}
 		defer store.Close() //nolint:errcheck
 
-		// Query history
-		repoID, _ := store.EnsureRepo(snap.RepoRoot)
-		projectHistory, _ := store.ProjectHistory(repoID, snap.CwdRel, 20)
-		globalHistory, _ := store.RecentGlobal(10)
+		// Query history (best-effort: log errors under --verbose).
+		repoID, err := store.EnsureRepo(snap.RepoRoot)
+		if err != nil && verbose {
+			fmt.Fprintf(os.Stderr, "Warning: history: %v\n", err)
+		}
+		projectHistory, err := store.ProjectHistory(repoID, snap.CwdRel, 20)
+		if err != nil && verbose {
+			fmt.Fprintf(os.Stderr, "Warning: history: %v\n", err)
+		}
+		globalHistory, err := store.RecentGlobal(10)
+		if err != nil && verbose {
+			fmt.Fprintf(os.Stderr, "Warning: history: %v\n", err)
+		}
 
 		// --explain: print the full prompt and exit without calling the API.
 		if explain {
@@ -123,9 +132,13 @@ func newRootCmd() *cobra.Command {
 		// Record outcome
 		switch result.Action {
 		case tui.ActionRun:
-			_ = store.Record(repoID, snap.CwdRel, intent, result.Candidate.Cmd, history.OutcomeAccepted)
+			if err := store.Record(repoID, snap.CwdRel, intent, result.Candidate.Cmd, history.OutcomeAccepted); err != nil && verbose {
+				fmt.Fprintf(os.Stderr, "Warning: history record: %v\n", err)
+			}
 		case tui.ActionCopy:
-			_ = store.Record(repoID, snap.CwdRel, intent, result.Candidate.Cmd, history.OutcomeCopied)
+			if err := store.Record(repoID, snap.CwdRel, intent, result.Candidate.Cmd, history.OutcomeCopied); err != nil && verbose {
+				fmt.Fprintf(os.Stderr, "Warning: history record: %v\n", err)
+			}
 		}
 
 		// Execute the action
