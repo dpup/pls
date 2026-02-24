@@ -216,6 +216,25 @@ func TestToolHandler_ReadFile_Directory(t *testing.T) {
 	}
 }
 
+func TestToolHandler_ReadFile_TooLarge(t *testing.T) {
+	h := newTestHandler(t)
+	// Create a file just over 1MB.
+	data := make([]byte, 1<<20+1)
+	for i := range data {
+		data[i] = 'x'
+	}
+	writeTestFile(t, h, "huge.bin", string(data))
+
+	input := json.RawMessage(`{"path": "huge.bin"}`)
+	result, isErr := h.execute("read_file", input)
+	if !isErr {
+		t.Fatal("expected isError=true for oversized file, got false")
+	}
+	if !strings.Contains(result, "too large") {
+		t.Errorf("expected 'too large' in error, got: %s", result)
+	}
+}
+
 // ---------------------------------------------------------------------------
 // toolHandler: path traversal
 // ---------------------------------------------------------------------------

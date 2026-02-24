@@ -119,9 +119,17 @@ func (h *toolHandler) readFile(input json.RawMessage) (string, bool) {
 		return "path is outside repo root", true
 	}
 
-	// If the path is a directory, return a helpful hint instead of a raw OS error.
-	if info, err := os.Stat(target); err == nil && info.IsDir() {
+	// Check file size before reading to prevent OOM on large files.
+	info, err := os.Stat(target)
+	if err != nil {
+		return fmt.Sprintf("cannot read file: %v", err), true
+	}
+	if info.IsDir() {
 		return fmt.Sprintf("%q is a directory, not a file. Use list_files to see its contents.", params.Path), true
+	}
+	const maxFileSize = 1 << 20 // 1MB
+	if info.Size() > maxFileSize {
+		return fmt.Sprintf("file too large (%d bytes, max %d). Try a more specific path.", info.Size(), maxFileSize), true
 	}
 
 	data, err := os.ReadFile(target)
