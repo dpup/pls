@@ -1,9 +1,9 @@
 # pls
 
-Project-aware natural language shell command router. Translates what you *want* to do into the right command for your current project.
+Describe what you want. Get the exact command for your project.
 
 ```
-$ pls "run just the history tests"
+$ pls run just the history tests
 
   ╭─────────────────────────────────────────────────────────────────────╮
   │ go test ./internal/history -v -run TestRecordAndQueryProjectHistory │
@@ -15,7 +15,9 @@ $ pls "run just the history tests"
   [y] run  [c] copy  [n] next  [p] prev  [q] quit
 ```
 
-`pls` understands your project. It detects your build tools, package managers, Makefiles, test structure, and command history — then uses Claude to suggest precise commands grounded in that context. When needed, the LLM can explore your project via tool calls to find exact file paths, test names, and config details.
+`pls` reads your project — build tools, package managers, Makefiles, test layout, and your command history — then uses an LLM to suggest precise shell commands grounded in what's actually there.
+
+Deterministic parsers collect your project's real affordances quickly. The model reasons over that structured context to map your intent to a concrete command. When it needs specifics — an exact test name or config value — it can read your files directly.
 
 ## Install
 
@@ -85,36 +87,38 @@ pls --explain "run tests for history"
 
 ### Context detection
 
-`pls` scans your project and detects:
+Before calling the LLM, `pls` scans your project to build a structured snapshot of your tooling:
 
-| Parser | What it finds |
-|--------|--------------|
-| **git** | Branch, changed files, repo root |
-| **go** | Module name, all package paths, which packages have tests |
-| **node** | Package manager (npm/yarn/pnpm/bun), scripts |
-| **make** | Makefile targets |
-| **just** | Justfile recipes |
-| **docker** | Compose services |
-| **python** | Package manager (pip/poetry/uv), virtualenv |
-| **scripts** | Executables in `bin/` and `scripts/` |
+| What it detects | Examples |
+|----------------|---------|
+| **Git** | Branch, changed files, repo root |
+| **Go** | Module name, packages, which packages have tests |
+| **Node** | Package manager (npm/yarn/pnpm/bun), scripts |
+| **Make** | Makefile targets |
+| **Just** | Justfile recipes |
+| **Docker** | Compose services |
+| **Python** | Package manager (pip/poetry/uv), virtualenv |
+| **Scripts** | Executables in `bin/` and `scripts/` |
 
-### Tool-use loop
+This context is sent to the LLM so it can suggest commands that use your actual tools — not generic guesses.
 
-For specific intents (like targeting a particular test), the LLM can explore your project before answering:
+### File exploration
 
-1. Receives project context + your intent
-2. Optionally calls `list_files` or `read_file` to inspect specific paths
-3. Produces candidates grounded in what it actually found
+For specific intents (like targeting a single test by name), static context isn't enough. The LLM can explore your project via sandboxed `list_files` and `read_file` tool calls to find exact file paths, function names, and config details before suggesting a command.
 
 This is capped at 2 tool rounds to keep response times fast.
 
+### Risk classification
+
+Every candidate is classified as **safe**, **moderate**, or **dangerous** so you can see at a glance whether a command is read-only (`git status`), a reversible write (`git commit`), or destructive (`rm -rf`).
+
 ### Model escalation
 
-By default, `pls` uses Claude Haiku for speed. If the top candidate's confidence is below the escalation threshold (default 0.7), it automatically retries with Claude Sonnet.
+`pls` uses Claude Haiku for speed. If the top candidate's confidence is below the escalation threshold (default 0.7), it automatically retries with Claude Sonnet for a more thorough answer.
 
 ### Command history
 
-Every command you accept or copy is recorded in a local SQLite database. This history is included in future prompts so the LLM can learn your preferences and avoid repeating rejected commands.
+Every command you accept or copy is recorded in a local SQLite database. This history is fed back into future prompts so the LLM learns your preferences — if you always use `make test` instead of `go test ./...`, it picks that up. Rejected commands are marked so they won't be suggested again.
 
 ## Development
 
