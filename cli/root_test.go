@@ -17,6 +17,7 @@ func TestRun_NoArgs(t *testing.T) {
 
 func TestRun_MissingAPIKey(t *testing.T) {
 	t.Setenv("ANTHROPIC_API_KEY", "")
+	t.Setenv("HOME", t.TempDir()) // prevent loading api_key from user's config file
 	cmd := newRootCmd()
 	cmd.SetArgs([]string{"test intent"})
 	err := cmd.Execute()

@@ -4,7 +4,6 @@ import (
 	gocontext "context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/anthropics/anthropic-sdk-go"
@@ -83,8 +82,9 @@ func (c *Client) callWithTools(model, prompt string, handler *toolHandler) (*Res
 			System: []anthropic.TextBlockParam{
 				{Text: SystemPrompt()},
 			},
-			Messages: messages,
-			Tools:    turnTools,
+			Messages:     messages,
+			Tools:        turnTools,
+			OutputConfig: candidatesOutputConfig(),
 		})
 		cancel()
 		if err != nil {
@@ -180,6 +180,7 @@ func (c *Client) call(model, prompt string) (*Response, error) {
 		Messages: []anthropic.MessageParam{
 			anthropic.NewUserMessage(anthropic.NewTextBlock(prompt)),
 		},
+		OutputConfig: candidatesOutputConfig(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("API call to %s: %w", model, err)
@@ -196,13 +197,45 @@ func (c *Client) call(model, prompt string) (*Response, error) {
 	return parseTextResponse(text, model)
 }
 
-// parseTextResponse extracts JSON candidates from the LLM's text response.
+// candidatesOutputConfig returns the OutputConfig that constrains the LLM
+// response to the candidates JSON schema via structured outputs.
+func candidatesOutputConfig() anthropic.OutputConfigParam {
+	return anthropic.OutputConfigParam{
+		Format: anthropic.JSONOutputFormatParam{
+			Schema: map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"candidates": map[string]any{
+						"type": "array",
+						"items": map[string]any{
+							"type": "object",
+							"properties": map[string]any{
+								"cmd":        map[string]any{"type": "string"},
+								"reason":     map[string]any{"type": "string"},
+								"confidence": map[string]any{"type": "number"},
+								"risk": map[string]any{
+									"type": "string",
+									"enum": []string{"safe", "moderate", "dangerous"},
+								},
+							},
+							"required":             []string{"cmd", "reason", "confidence", "risk"},
+							"additionalProperties": false,
+						},
+					},
+				},
+				"required":             []string{"candidates"},
+				"additionalProperties": false,
+			},
+		},
+	}
+}
+
+// parseTextResponse parses the LLM's text response into candidates.
+// With structured outputs the API guarantees valid JSON matching the schema.
 func parseTextResponse(text, model string) (*Response, error) {
 	if text == "" {
 		return nil, fmt.Errorf("the model returned an empty response — try rephrasing your intent")
 	}
-
-	text = extractJSON(text)
 
 	var resp Response
 	if err := json.Unmarshal([]byte(text), &resp); err != nil {
@@ -210,35 +243,4 @@ func parseTextResponse(text, model string) (*Response, error) {
 	}
 
 	return &resp, nil
-}
-
-// extractJSON extracts the JSON object from a response that may contain
-// markdown fences or preamble text (common after multi-turn tool use).
-func extractJSON(s string) string {
-	s = strings.TrimSpace(s)
-
-	// Handle ```json ... ``` or ``` ... ```
-	if strings.HasPrefix(s, "```") {
-		if idx := strings.Index(s, "\n"); idx != -1 {
-			s = s[idx+1:]
-		}
-		if idx := strings.LastIndex(s, "```"); idx != -1 {
-			s = s[:idx]
-		}
-		s = strings.TrimSpace(s)
-	}
-
-	// If the string starts with '{', it's already JSON.
-	if strings.HasPrefix(s, "{") {
-		return s
-	}
-
-	// Otherwise, find the first '{' and last '}' to extract embedded JSON.
-	start := strings.Index(s, "{")
-	end := strings.LastIndex(s, "}")
-	if start >= 0 && end > start {
-		return s[start : end+1]
-	}
-
-	return s
 }

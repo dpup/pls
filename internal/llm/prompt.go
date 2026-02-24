@@ -19,7 +19,6 @@ names, config file contents, or directory layout. Keep tool use minimal (1-2 cal
 If the context already has what you need, respond directly.
 
 Rules:
-- Return valid JSON only. No markdown fences, no prose, no explanation outside JSON.
 - Return 1-5 candidates ranked by confidence (highest first).
 - Allow pipes, chaining, jq, docker exec, psql, and other advanced shell features.
 - Prefer commands grounded in the project context (e.g. use the detected package manager, build tool, or scripts).
@@ -28,19 +27,7 @@ Rules:
 - Classify risk for each command:
   - "safe": read-only operations (ls, cat, grep, git status, etc.)
   - "moderate": writes that are reversible (git commit, file edits with backups, etc.)
-  - "dangerous": destructive or irreversible operations (rm -rf, DROP TABLE, force push, etc.)
-
-Response JSON schema:
-{
-  "candidates": [
-    {
-      "cmd": "the shell command to run",
-      "reason": "brief explanation of why this command fits",
-      "confidence": 0.95,
-      "risk": "safe"
-    }
-  ]
-}`
+  - "dangerous": destructive or irreversible operations (rm -rf, DROP TABLE, force push, etc.)`
 }
 
 // BuildPrompt constructs the user prompt from intent, context snapshot, and history.

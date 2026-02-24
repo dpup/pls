@@ -1,6 +1,9 @@
 package llm
 
-import "testing"
+import (
+	"encoding/json"
+	"testing"
+)
 
 func TestParseTextResponse_EmptyText(t *testing.T) {
 	_, err := parseTextResponse("", "claude-haiku-4-5-20251001")
@@ -28,16 +31,36 @@ func TestParseTextResponse_ValidJSON(t *testing.T) {
 	}
 }
 
-func TestParseTextResponse_MarkdownFenced(t *testing.T) {
-	input := "```json\n{\"candidates\":[{\"cmd\":\"go test ./...\",\"reason\":\"test\",\"confidence\":0.9,\"risk\":\"safe\"}]}\n```"
-	resp, err := parseTextResponse(input, "test-model")
+func TestCandidatesOutputConfig_ValidSchema(t *testing.T) {
+	cfg := candidatesOutputConfig()
+
+	// Verify the schema serializes to valid JSON.
+	data, err := json.Marshal(cfg.Format)
 	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+		t.Fatalf("schema should serialize: %v", err)
 	}
-	if len(resp.Candidates) != 1 {
-		t.Fatalf("expected 1 candidate, got %d", len(resp.Candidates))
+
+	// Verify key fields are present in the serialized output.
+	var m map[string]any
+	if err := json.Unmarshal(data, &m); err != nil {
+		t.Fatalf("schema should be valid JSON: %v", err)
 	}
-	if resp.Candidates[0].Cmd != "go test ./..." {
-		t.Errorf("expected cmd %q, got %q", "go test ./...", resp.Candidates[0].Cmd)
+
+	schema, ok := m["schema"].(map[string]any)
+	if !ok {
+		t.Fatal("expected 'schema' key in output config format")
+	}
+
+	props, ok := schema["properties"].(map[string]any)
+	if !ok {
+		t.Fatal("expected 'properties' in schema")
+	}
+
+	if _, ok := props["candidates"]; !ok {
+		t.Error("schema should have 'candidates' property")
+	}
+
+	if schema["additionalProperties"] != false {
+		t.Error("schema should have additionalProperties: false")
 	}
 }

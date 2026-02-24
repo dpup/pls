@@ -10,53 +10,6 @@ import (
 )
 
 // ---------------------------------------------------------------------------
-// extractJSON tests
-// ---------------------------------------------------------------------------
-
-func TestExtractJSON_CleanJSON(t *testing.T) {
-	input := `{"candidates":[]}`
-	got := extractJSON(input)
-	if got != input {
-		t.Errorf("expected %q, got %q", input, got)
-	}
-}
-
-func TestExtractJSON_MarkdownFences(t *testing.T) {
-	input := "```json\n{\"candidates\":[{\"cmd\":\"echo hi\"}]}\n```"
-	want := `{"candidates":[{"cmd":"echo hi"}]}`
-	got := extractJSON(input)
-	if got != want {
-		t.Errorf("expected %q, got %q", want, got)
-	}
-}
-
-func TestExtractJSON_PreambleText(t *testing.T) {
-	inner := `{"candidates":[{"cmd":"ls -la","confidence":0.9}]}`
-	input := "Here are the results:\n" + inner
-	got := extractJSON(input)
-	if got != inner {
-		t.Errorf("expected %q, got %q", inner, got)
-	}
-}
-
-func TestExtractJSON_NoJSON(t *testing.T) {
-	input := "no json here at all"
-	got := extractJSON(input)
-	if got != input {
-		t.Errorf("expected input unchanged %q, got %q", input, got)
-	}
-}
-
-func TestExtractJSON_TextAfterJSON(t *testing.T) {
-	inner := `{"candidates":[{"cmd":"pwd"}]}`
-	input := "Here: " + inner + "\nHope that helps"
-	got := extractJSON(input)
-	if got != inner {
-		t.Errorf("expected %q, got %q", inner, got)
-	}
-}
-
-// ---------------------------------------------------------------------------
 // toolHandler tests — helpers
 // ---------------------------------------------------------------------------
 

@@ -15,12 +15,14 @@ import (
 const maxToolTurns = 2
 
 // toolDefs returns the tool definitions offered to the LLM.
+// Strict mode guarantees schema validation on tool inputs.
 func toolDefs() []anthropic.ToolUnionParam {
 	return []anthropic.ToolUnionParam{
 		{
 			OfTool: &anthropic.ToolParam{
 				Name:        "list_files",
 				Description: anthropic.String("List files and subdirectories at a path relative to the repo root. Returns names with trailing '/' for directories."),
+				Strict:      anthropic.Bool(true),
 				InputSchema: anthropic.ToolInputSchemaParam{
 					Properties: map[string]any{
 						"path": map[string]any{
@@ -28,7 +30,8 @@ func toolDefs() []anthropic.ToolUnionParam {
 							"description": "Directory path relative to repo root, e.g. '.' or 'internal/history'",
 						},
 					},
-					Required: []string{"path"},
+					Required:    []string{"path"},
+					ExtraFields: map[string]any{"additionalProperties": false},
 				},
 			},
 		},
@@ -36,6 +39,7 @@ func toolDefs() []anthropic.ToolUnionParam {
 			OfTool: &anthropic.ToolParam{
 				Name:        "read_file",
 				Description: anthropic.String("Read the contents of a file relative to the repo root. Returns up to 200 lines."),
+				Strict:      anthropic.Bool(true),
 				InputSchema: anthropic.ToolInputSchemaParam{
 					Properties: map[string]any{
 						"path": map[string]any{
@@ -47,7 +51,8 @@ func toolDefs() []anthropic.ToolUnionParam {
 							"description": "Maximum number of lines to return (default and max: 200)",
 						},
 					},
-					Required: []string{"path"},
+					Required:    []string{"path"},
+					ExtraFields: map[string]any{"additionalProperties": false},
 				},
 			},
 		},
