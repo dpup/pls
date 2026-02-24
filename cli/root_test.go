@@ -7,10 +7,9 @@ import (
 )
 
 func TestRun_NoArgs(t *testing.T) {
-	rootCmd.SetArgs([]string{})
-	defer rootCmd.SetArgs([]string{})
-
-	err := rootCmd.Execute()
+	cmd := newRootCmd()
+	cmd.SetArgs([]string{})
+	err := cmd.Execute()
 	if err == nil {
 		t.Fatal("expected error when running with no args, got nil")
 	}
@@ -18,11 +17,9 @@ func TestRun_NoArgs(t *testing.T) {
 
 func TestRun_MissingAPIKey(t *testing.T) {
 	t.Setenv("ANTHROPIC_API_KEY", "")
-
-	rootCmd.SetArgs([]string{"test intent"})
-	defer rootCmd.SetArgs([]string{})
-
-	err := rootCmd.Execute()
+	cmd := newRootCmd()
+	cmd.SetArgs([]string{"test intent"})
+	err := cmd.Execute()
 	if err == nil {
 		t.Fatal("expected error about missing API key, got nil")
 	}
@@ -33,33 +30,23 @@ func TestRun_MissingAPIKey(t *testing.T) {
 
 func TestRun_ExplainFlag(t *testing.T) {
 	t.Setenv("ANTHROPIC_API_KEY", "")
-
-	rootCmd.SetArgs([]string{"--explain", "run tests"})
-	defer func() {
-		rootCmd.SetArgs([]string{})
-		explain = false
-	}()
-
+	cmd := newRootCmd()
+	cmd.SetArgs([]string{"--explain", "run tests"})
 	buf := new(bytes.Buffer)
-	rootCmd.SetErr(buf)
-	defer rootCmd.SetErr(nil)
-
-	err := rootCmd.Execute()
+	cmd.SetErr(buf)
+	err := cmd.Execute()
 	if err != nil {
 		t.Fatalf("--explain should not return an error, got: %v", err)
 	}
 }
 
 func TestRun_VersionFlag(t *testing.T) {
-	rootCmd.Version = "test-version"
-	rootCmd.SetArgs([]string{"--version"})
-	defer rootCmd.SetArgs([]string{})
-
+	cmd := newRootCmd()
+	cmd.Version = "test-version"
+	cmd.SetArgs([]string{"--version"})
 	buf := new(bytes.Buffer)
-	rootCmd.SetOut(buf)
-	defer rootCmd.SetOut(nil)
-
-	err := rootCmd.Execute()
+	cmd.SetOut(buf)
+	err := cmd.Execute()
 	if err != nil {
 		t.Fatalf("--version should not error, got: %v", err)
 	}
