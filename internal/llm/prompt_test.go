@@ -32,7 +32,7 @@ func TestBuildPrompt_IncludesContext(t *testing.T) {
 				Name: "node",
 				Data: map[string]any{
 					"package_manager": "pnpm",
-					"scripts":        []any{"build", "test", "lint"},
+					"scripts":         []any{"build", "test", "lint"},
 				},
 			},
 		},

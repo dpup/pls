@@ -21,8 +21,8 @@ type ToolRound struct {
 
 // ToolCall captures a single tool invocation and its result.
 type ToolCall struct {
-	Name      string
-	Input     map[string]any
-	Result    string
-	IsError   bool
+	Name    string
+	Input   map[string]any
+	Result  string
+	IsError bool
 }
